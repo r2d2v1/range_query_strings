@@ -14,6 +14,18 @@ using namespace std;
 int main()
 {
 	Trie *t = new Trie();
+	t->addKeyword("aaA");
+
+	t->addKeyword("aa");
+
+	t->addKeyword("aBa");
+
+	std::cout << t->addKeyword("aa") << std::endl;
+
+	//t->print();
+
+	std::cout << t->isKeywordValid("aa") << std::endl;
+
 
 	delete t;
 

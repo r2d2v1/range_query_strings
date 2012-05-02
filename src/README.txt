@@ -19,4 +19,4 @@ b. Check if all the TrieNodes representing the "path of this largest prefix" are
 
 5. Open Set and Close set. 
 a. [,( condition belongs Range_Start.  ],) belongs to Range_End.
-b. Condition can be put into the Trie, in the pre-order traversal steps 2a and 3b.
+b. Condition can be put into the Trie, in the pre-order traversal steps 2b and 3b.

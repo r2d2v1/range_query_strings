@@ -65,6 +65,17 @@ public:
 			return this->children[getIndex(character)] = new TrieNode();
 	}
 
+	void print() const
+	{
+		for (unsigned i = 0; i < 128; i++)
+		{
+			if ( this->children[i] != NULL)
+				if (this->children[i]->valid);
+					std::cout << (char)i <<  std::endl;
+				this->children[i]->print();
+
+		}
+	}
 };
 
 class Trie
@@ -90,11 +101,11 @@ public:
 	 * insert the keyword into the trie
 	 * If the keyword is empty, returns 0, as empty srting is not a valid input string.
 	 */
-	unsigned addKeyword(const std::string &keyword)
+	TrieNode* addKeyword(const std::string &keyword)
 	{
 		///corner case to check invalid empty string
 		if ( keyword.size() == 0 )
-			return 0;
+			return NULL;
 
 		TrieNode *node = this->root;
 
@@ -103,6 +114,7 @@ public:
 		while (*charIterator)
 		{
 			assert (node != NULL);
+			//std::cout << *charIterator << std::endl;
 
 			TrieNode *childNode = node->getChildNode(*charIterator);
 			if (childNode == NULL)
@@ -112,6 +124,8 @@ public:
 
 			++charIterator;
 		}
+		//std::cout << "---" << std::endl;
+		return node;
 	};
 
 	bool isKeywordValid(const std::string &keyword) const
@@ -126,6 +140,7 @@ public:
 
 		while ( node!= NULL && node->valid && *charIterator)
 		{
+			std::cout << *charIterator << std::endl;
 			TrieNode *childNode = node->getChildNode(*charIterator);
 			if (childNode == NULL)
 			{
@@ -135,6 +150,18 @@ public:
 			node = childNode;
 			++charIterator;
 		}
+
+		if (not charIterator)
+			returnValue = true;
+
+		return returnValue;
+	}
+
+	bool setValidFromRangeAToRangeB(TrieNode *range_a, TrieNode *range_b)
+	{
+
+		TrieNode *range_a = this->addKeyword(rangeA);
+		TrieNode *range_b = this->addKeyword(rangeB);
 	}
 
 	bool addkeywordRange(const std::string &in)
@@ -142,6 +169,16 @@ public:
 		std::stringstream str(in);
 		std::string open, rangeA, comma, rangeB, close;
 		str >> open >> rangeA >> comma >> rangeB >> close;
+
+		TrieNode *range_a = this->addKeyword(rangeA);
+		TrieNode *range_b = this->addKeyword(rangeB);
+
+		this->setValidFromRangeAToRangeB(range_a, range_b);
+	}
+
+	void print() const
+	{
+		this->root->print();
 	}
 };
 

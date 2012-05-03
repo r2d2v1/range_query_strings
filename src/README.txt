@@ -14,8 +14,8 @@ a. add keywords R_a and R_b. If keywords all ready exist, no op.
 b. Then, do a pre-order traversal from R_a to R_b and set all nodes to invalid.
 
 4. CHECK VALID:
-a. For a given keyword, get the largest prefix already in the Trie.
-b. Check if all the TrieNodes representing the "path of this largest prefix" are valid.
+a. For a given keyword, get the longest prefix already in the Trie.
+b. On the prefix leaf node from [4.a], check if the query keyword range is valid, by checking the siblings.
 
 5. Open Set and Close set. 
 a. [,( condition belongs Range_Start.  ],) belongs to Range_End.

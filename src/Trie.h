@@ -51,6 +51,14 @@ public:
 			return NULL;
 	}
 
+	const TrieNode* getChildNode(char character) const
+	{
+		if (isValidIndex(getIndex(character)))
+			return this->children[getIndex(character)];
+		else
+			return NULL;
+	}
+
 	TrieNode* addChildNode(char character)
 	{
 		if (isValidIndex(getIndex(character)))
@@ -67,6 +75,39 @@ public:
 				this->children[i]->print();
 
 		}
+	}
+
+	const TrieNode* getRightMostNodeInSubTrie() const
+	{
+		if (this == NULL) return NULL;
+		for (unsigned siblingIterator = 127;
+				 siblingIterator >= 0;
+				--siblingIterator)
+		{
+			const TrieNode *rightSibling = this->getChildNode(siblingIterator);
+			if (rightSibling != NULL)
+			{
+				rightSibling =  rightSibling->getRightMostNodeInSubTrie();
+				return rightSibling;
+			}
+		}
+		return NULL;
+	}
+
+	const TrieNode* getLeftMostNodeInSubTrie() const
+	{
+		for (unsigned siblingIterator = 0;
+				siblingIterator < 128;
+				++siblingIterator)
+		{
+			const TrieNode *leftSibling = this->getChildNode(siblingIterator);
+			if (leftSibling != NULL)
+			{
+				leftSibling =  leftSibling->getLeftMostNodeInSubTrie();
+				return leftSibling;
+			}
+		}
+		return NULL;
 	}
 
 	//  Checks wether range_a and range_b are valid.
@@ -233,7 +274,9 @@ public:
 					TrieNode *leftSibling = node->getChildNode(siblingIterator);
 					if (leftSibling != NULL)
 					{
-						leftSibling_valid = leftSibling->valid;
+						const TrieNode *prevNode = leftSibling->getRightMostNodeInSubTrie();
+						if (prevNode != NULL)
+							leftSibling_valid = prevNode->valid;
 						break;
 					}
 				}
@@ -246,7 +289,9 @@ public:
 					TrieNode *rightSibling = node->getChildNode(siblingIterator);
 					if (rightSibling != NULL)
 					{
-						rightSibling_valid = rightSibling->valid;
+						const TrieNode *nextNode = rightSibling->getLeftMostNodeInSubTrie();
+						if (nextNode != NULL)
+							rightSibling_valid = nextNode->valid;
 						break;
 					}
 				}

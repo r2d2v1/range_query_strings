@@ -54,11 +54,6 @@ public:
 			return NULL;
 	}
 
-	TrieNode* setNodeValid()
-	{
-		this->valid = true;
-	}
-
 	TrieNode* addChildNode(char character)
 	{
 		if (isValidIndex(getIndex(character)))
@@ -77,39 +72,77 @@ public:
 		}
 	}
 
-	void setValidFromRangeAToRangeB(const TrieNode *range_a, bool &found_a, const TrieNode *range_b, bool &found_b)
+	void checkValidRange(const TrieNode *range_a, bool &found_a, const TrieNode *range_b, bool &found_b) const
 	{
 		if (found_b)
 		{
-			std::cout << "f_b"  << std::endl;
+			//std::cout << "f_b"  << std::endl;
 			return;
 		}
 		for (unsigned i =0; i < 128; i++)
 		{
 			if (this->children[i] != NULL)
 			{
-				std::cout << (char)i  << std::endl;
+				//std::cout << (char)i  << std::endl;
 				if (not found_a)
 				{
 					if (this->children[i] == range_a)
 					{
 						found_a = true;
-						std::cout << "f_a"  << std::endl;
+						//std::cout << "f_a"  << std::endl;
 					}
 				}
 
 				if (found_a && not found_b)
 				{
-					this->children[i]->valid = true;
+					//this->children[i]->valid = valid;
 					if (this->children[i] == range_b)
 					{
 						found_b = true;
-						std::cout << "f_b"  << std::endl;
+						//std::cout << "f_b"  << std::endl;
 						break;
 					}
 				}
 
-				this->children[i]->setValidFromRangeAToRangeB(range_a, found_a, range_b, found_b);
+				this->children[i]->checkValidRange(range_a, found_a, range_b, found_b);
+			}
+		}
+		return;
+	}
+
+	void setValidFromRangeAToRangeB(const TrieNode *range_a, bool &found_a, const TrieNode *range_b, bool &found_b , bool valid)
+	{
+		if (found_b)
+		{
+			//std::cout << "f_b"  << std::endl;
+			return;
+		}
+		for (unsigned i =0; i < 128; i++)
+		{
+			if (this->children[i] != NULL)
+			{
+				//std::cout << (char)i  << std::endl;
+				if (not found_a)
+				{
+					if (this->children[i] == range_a)
+					{
+						found_a = true;
+						//std::cout << "f_a"  << std::endl;
+					}
+				}
+
+				if (found_a && not found_b)
+				{
+					this->children[i]->valid = valid;
+					if (this->children[i] == range_b)
+					{
+						found_b = true;
+						//std::cout << "f_b"  << std::endl;
+						break;
+					}
+				}
+
+				this->children[i]->setValidFromRangeAToRangeB(range_a, found_a, range_b, found_b, valid);
 			}
 		}
 		return;
@@ -168,54 +201,94 @@ public:
 
 	bool isKeywordValid(const std::string &keyword) const
 	{
-		bool returnValue = false;
-
+		// if empty keyword return 0
 		if ( keyword.size() == 0 )
-			return returnValue;
+			return false;
 
 		TrieNode *node = this->root;
 		char *charIterator = (char *) keyword.c_str();
 
-		while ( node!= NULL && node->valid && *charIterator)
+		while ( *charIterator)
 		{
-			std::cout << *charIterator << std::endl;
+			//std::cout << *charIterator << std::endl;
 			TrieNode *childNode = node->getChildNode(*charIterator);
-			if (childNode == NULL)
+
+			if ( childNode == NULL )
 			{
-				returnValue = true;
-				break;
+				//check left siblings
+				for (unsigned siblingIterator = TrieNode::getIndex(*charIterator);
+						TrieNode::isValidIndex(siblingIterator) && siblingIterator >= 0;
+						--siblingIterator)
+				{
+					TrieNode *leftSibling = node->getChildNode(siblingIterator);
+					if (leftSibling != NULL && leftSibling->valid)
+						return true;
+				}
 			}
 			node = childNode;
 			++charIterator;
 		}
-
-		if (not charIterator)
-			returnValue = true;
-
-		return returnValue;
+		// check if the keyword path led to a valid trienode
+		if ( node->valid)
+			return true;
+		else
+			return false;
 	}
 
-	bool setValidFromRangeAToRangeB(TrieNode *range_a, TrieNode *range_b)
+	// first run of DFS to check if rangeA is reached before rangeB
+	bool checkValidRange(const TrieNode *range_a, const TrieNode *range_b)
 	{
 		bool found_a = false;
 		bool found_b = false;
-		this->root->setValidFromRangeAToRangeB(range_a, found_a, range_b, found_b);
+		this->root->checkValidRange(range_a, found_a, range_b, found_b);
+
+		if (found_a && found_b)
+			return true;
+		else
+			return false;
 	}
 
-	bool addkeywordRange(const std::string &in)
+	bool setValidFromRangeAToRangeB(const TrieNode *range_a, const TrieNode *range_b, bool valid)
+	{
+		// first run of DFS to check if rangeA is reached before rangeB
+		if (this->checkValidRange(range_a, range_b))
+		{
+			bool found_a = false;
+			bool found_b = false;
+			this->root->setValidFromRangeAToRangeB(range_a, found_a, range_b, found_b, valid);
+		}
+	}
+
+	bool addKeywordRange(const std::string &in)
 	{
 		std::stringstream str(in);
 		std::string open, rangeA, comma, rangeB, close;
 		str >> open >> rangeA >> comma >> rangeB >> close;
 
-		std::cout << "|" << open << "|" << rangeA << "|" << comma << "|" << rangeB << "|" << close << std::endl;
+		//std::cout << "|" << open << "|" << rangeA << "|" << comma << "|" << rangeB << "|" << close << std::endl;
+
+		const TrieNode *range_a = this->addKeyword(rangeA);
+		const TrieNode *range_b = this->addKeyword(rangeB);
+
+		bool valid = true;
+		this->setValidFromRangeAToRangeB(range_a, range_b, valid);
+	}
+
+	bool delKeywordRange(const std::string &in)
+	{
+		std::stringstream str(in);
+		std::string open, rangeA, comma, rangeB, close;
+		str >> open >> rangeA >> comma >> rangeB >> close;
+
+		//std::cout << "|" << open << "|" << rangeA << "|" << comma << "|" << rangeB << "|" << close << std::endl;
 
 		TrieNode *range_a = this->addKeyword(rangeA);
 		TrieNode *range_b = this->addKeyword(rangeB);
 
-		this->setValidFromRangeAToRangeB(range_a, range_b);
-	}
+		bool valid = false;
+		this->setValidFromRangeAToRangeB(range_a, range_b, valid);
 
+	}
 	void print() const
 	{
 		this->root->print();

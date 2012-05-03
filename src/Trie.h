@@ -72,13 +72,19 @@ public:
 		}
 	}
 
+	//  Checks wether range_a and range_b are valid.
+	// To pre order traversal of the Trie. Check if range_a is reached before range_b trienode.
 	void checkValidRange(const TrieNode *range_a, bool &found_a, const TrieNode *range_b, bool &found_b) const
 	{
+		// stopping condition for dfs.
 		if (found_b)
 		{
 			//std::cout << "f_b"  << std::endl;
 			return;
 		}
+
+		// Optimization possible here. Currently the DFS does a sweep of the entire Trie
+		// till range_b is reached. Rather sweep only range_a to range_b
 		for (unsigned i =0; i < 128; i++)
 		{
 			if (this->children[i] != NULL)
@@ -100,6 +106,7 @@ public:
 					{
 						found_b = true;
 						//std::cout << "f_b"  << std::endl;
+						// stopping condition for dfs.
 						break;
 					}
 				}
@@ -110,6 +117,7 @@ public:
 		return;
 	}
 
+	//  To pre order traversal of the Trie. Check if range_a is reached before range_b trienode and set valid bit.
 	void setValidFromRangeAToRangeB(const TrieNode *range_a, bool &found_a, const TrieNode *range_b, bool &found_b , bool valid)
 	{
 		if (found_b)
@@ -170,7 +178,7 @@ public:
 
 	/**
 	 * insert the keyword into the trie
-	 * If the keyword is empty, returns 0, as empty srting is not a valid input string.
+	 * If the keyword is empty, returns NULL, as empty string is not a valid input string.
 	 */
 	TrieNode* addKeyword(const std::string &keyword)
 	{
@@ -246,6 +254,8 @@ public:
 
 				if (rightSibling_valid && leftSibling_valid) // the prefix in valid range
 					return true;
+				else
+					return false;
 			}
 			node = childNode;
 			++charIterator;
@@ -270,6 +280,7 @@ public:
 			return false;
 	}
 
+	//  To pre order traversal of the Trie. Check if range_a is reached before range_b trienode and set valid bit.
 	bool setValidFromRangeAToRangeB(const TrieNode *range_a, const TrieNode *range_b, bool valid)
 	{
 		// first run of DFS to check if rangeA is reached before rangeB
@@ -281,36 +292,33 @@ public:
 		}
 	}
 
-	bool addKeywordRange(const std::string &in)
+	bool operationHandler(const std::string &in, bool isAdd)
 	{
+		// parse input. Each literal must be separated by single whitespace, like [ aaa , bbb ]
 		std::stringstream str(in);
 		std::string open, rangeA, comma, rangeB, close;
 		str >> open >> rangeA >> comma >> rangeB >> close;
-
 		//std::cout << "|" << open << "|" << rangeA << "|" << comma << "|" << rangeB << "|" << close << std::endl;
 
-		const TrieNode *range_a = this->addKeyword(rangeA);
-		const TrieNode *range_b = this->addKeyword(rangeB);
+		// add keywords representing the start and end ranges
+		TrieNode *range_a = this->addKeyword(rangeA);
+		TrieNode *range_b = this->addKeyword(rangeB);
 
-		bool valid = true;
+		bool valid = isAdd;
+		// set the valid flags.
 		this->setValidFromRangeAToRangeB(range_a, range_b, valid);
+	}
+
+	bool addKeywordRange(const std::string &in)
+	{
+		return this->operationHandler(in, true);
 	}
 
 	bool delKeywordRange(const std::string &in)
 	{
-		std::stringstream str(in);
-		std::string open, rangeA, comma, rangeB, close;
-		str >> open >> rangeA >> comma >> rangeB >> close;
-
-		//std::cout << "|" << open << "|" << rangeA << "|" << comma << "|" << rangeB << "|" << close << std::endl;
-
-		TrieNode *range_a = this->addKeyword(rangeA);
-		TrieNode *range_b = this->addKeyword(rangeB);
-
-		bool valid = false;
-		this->setValidFromRangeAToRangeB(range_a, range_b, valid);
-
+		return this->operationHandler(in, false);
 	}
+
 	void print() const
 	{
 		this->root->print();

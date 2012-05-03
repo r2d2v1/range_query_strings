@@ -76,6 +76,44 @@ public:
 
 		}
 	}
+
+	void setValidFromRangeAToRangeB(const TrieNode *range_a, bool &found_a, const TrieNode *range_b, bool &found_b)
+	{
+		if (found_b)
+		{
+			std::cout << "f_b"  << std::endl;
+			return;
+		}
+		for (unsigned i =0; i < 128; i++)
+		{
+			if (this->children[i] != NULL)
+			{
+				std::cout << (char)i  << std::endl;
+				if (not found_a)
+				{
+					if (this->children[i] == range_a)
+					{
+						found_a = true;
+						std::cout << "f_a"  << std::endl;
+					}
+				}
+
+				if (found_a && not found_b)
+				{
+					this->children[i]->valid = true;
+					if (this->children[i] == range_b)
+					{
+						found_b = true;
+						std::cout << "f_b"  << std::endl;
+						break;
+					}
+				}
+
+				this->children[i]->setValidFromRangeAToRangeB(range_a, found_a, range_b, found_b);
+			}
+		}
+		return;
+	}
 };
 
 class Trie
@@ -159,9 +197,9 @@ public:
 
 	bool setValidFromRangeAToRangeB(TrieNode *range_a, TrieNode *range_b)
 	{
-
-		TrieNode *range_a = this->addKeyword(rangeA);
-		TrieNode *range_b = this->addKeyword(rangeB);
+		bool found_a = false;
+		bool found_b = false;
+		this->root->setValidFromRangeAToRangeB(range_a, found_a, range_b, found_b);
 	}
 
 	bool addkeywordRange(const std::string &in)
@@ -169,6 +207,8 @@ public:
 		std::stringstream str(in);
 		std::string open, rangeA, comma, rangeB, close;
 		str >> open >> rangeA >> comma >> rangeB >> close;
+
+		std::cout << "|" << open << "|" << rangeA << "|" << comma << "|" << rangeB << "|" << close << std::endl;
 
 		TrieNode *range_a = this->addKeyword(rangeA);
 		TrieNode *range_b = this->addKeyword(rangeB);

@@ -14,18 +14,12 @@ using namespace std;
 int main()
 {
 	Trie *t = new Trie();
-	t->addKeyword("aaA");
 
-	t->addKeyword("aa");
-
-	t->addKeyword("aBa");
-
-	std::cout << t->addKeyword("aa") << std::endl;
-
-	//t->print();
+	t->addkeywordRange("[ aaa , ccc ]");
+	t->addkeywordRange("[ Aaa , Dgh ]");
+	t->addkeywordRange("[ Cfg , EEE ]"); // invalid
 
 	std::cout << t->isKeywordValid("aa") << std::endl;
-
 
 	delete t;
 

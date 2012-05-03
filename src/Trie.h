@@ -190,9 +190,9 @@ public:
 			TrieNode *childNode = node->getChildNode(*charIterator);
 			if (childNode == NULL)
 			{
-				node = node->addChildNode(*charIterator);
+				childNode = node->addChildNode(*charIterator);
 			}
-
+			node = childNode;
 			++charIterator;
 		}
 		//std::cout << "---" << std::endl;
@@ -215,15 +215,37 @@ public:
 
 			if ( childNode == NULL )
 			{
+				if (not node->valid) // the sub trie is invalid
+					return false;
+
+				bool leftSibling_valid = false;
+				bool rightSibling_valid = false;
 				//check left siblings
 				for (unsigned siblingIterator = TrieNode::getIndex(*charIterator);
 						TrieNode::isValidIndex(siblingIterator) && siblingIterator >= 0;
 						--siblingIterator)
 				{
 					TrieNode *leftSibling = node->getChildNode(siblingIterator);
-					if (leftSibling != NULL && leftSibling->valid)
-						return true;
+					if (leftSibling != NULL)
+					{
+						leftSibling_valid = leftSibling->valid;
+					}
 				}
+
+				//check right siblings
+				for (unsigned siblingIterator = TrieNode::getIndex(*charIterator);
+						TrieNode::isValidIndex(siblingIterator) && siblingIterator < 128 ;
+						++siblingIterator)
+				{
+					TrieNode *rightSibling = node->getChildNode(siblingIterator);
+					if (rightSibling != NULL)
+					{
+						rightSibling_valid = rightSibling->valid;
+					}
+				}
+
+				if (rightSibling_valid && leftSibling_valid) // the prefix in valid range
+					return true;
 			}
 			node = childNode;
 			++charIterator;

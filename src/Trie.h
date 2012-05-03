@@ -4,12 +4,9 @@
 #include <math.h>
 #include <iostream>
 #include <string>
-#include <vector>
 #include <stdint.h>
 #include <sstream>
 #include <cassert>
-
-using std::vector;
 
 class TrieNode
 {
@@ -237,6 +234,7 @@ public:
 					if (leftSibling != NULL)
 					{
 						leftSibling_valid = leftSibling->valid;
+						break;
 					}
 				}
 
@@ -249,6 +247,7 @@ public:
 					if (rightSibling != NULL)
 					{
 						rightSibling_valid = rightSibling->valid;
+						break;
 					}
 				}
 
@@ -288,25 +287,78 @@ public:
 		{
 			bool found_a = false;
 			bool found_b = false;
+
 			this->root->setValidFromRangeAToRangeB(range_a, found_a, range_b, found_b, valid);
+			return true;
 		}
+		else
+			return false;
 	}
 
 	bool operationHandler(const std::string &in, bool isAdd)
 	{
 		// parse input. Each literal must be separated by single whitespace, like [ aaa , bbb ]
 		std::stringstream str(in);
-		std::string open, rangeA, comma, rangeB, close;
-		str >> open >> rangeA >> comma >> rangeB >> close;
-		//std::cout << "|" << open << "|" << rangeA << "|" << comma << "|" << rangeB << "|" << close << std::endl;
+		std::string start, rangeA, comma, rangeB, end;
+		str >> start >> rangeA >> comma >> rangeB >> end;
+		//std::cout << "|" << start << "|" << rangeA << "|" << comma << "|" << rangeB << "|" << end << std::endl;
+
+		bool start_is_open_set = false;
+		bool end_is_open_set = true;
+
+		// parsing the brackets.
+		if (start.compare("[") == 0)
+		{
+			start_is_open_set = true;
+		}
+		else if(end.compare("(") == 0)
+		{
+			start_is_open_set = false;
+		}
+		else
+		{
+			return false;
+		}
+
+		if (end.compare("]") == 0)
+		{
+			end_is_open_set = true;
+		}
+		else if(end.compare(")") == 0)
+		{
+			end_is_open_set = false;
+		}
+		else
+		{
+			return false;
+		}
 
 		// add keywords representing the start and end ranges
 		TrieNode *range_a = this->addKeyword(rangeA);
 		TrieNode *range_b = this->addKeyword(rangeB);
 
 		bool valid = isAdd;
+
+		// a. by default, set flags like its a open set "[", "]".
+		// b. But before setting flags remember the flags of two trienode.
+		// c. If its closed set, restore from b.
+
+		bool range_a_valid_flag = range_a->valid;
+		bool range_b_valid_flag = range_b->valid;
+
 		// set the valid flags.
-		this->setValidFromRangeAToRangeB(range_a, range_b, valid);
+		bool operation_passed = this->setValidFromRangeAToRangeB(range_a, range_b, valid);
+
+		if (operation_passed)
+		{
+			if (not start_is_open_set)
+				range_a->valid = range_a_valid_flag;
+
+			if (not end_is_open_set)
+				range_b->valid = range_b_valid_flag;
+		}
+
+		return operation_passed;
 	}
 
 	bool addKeywordRange(const std::string &in)

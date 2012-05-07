@@ -14,7 +14,9 @@ class TrieNode
 public:
 	//char character; // redundant
 	TrieNode *children[128]; // ASCII is 0-127 characters rite
-	bool valid; // node and subtree is invalid
+	bool valid;// node and subtree is invalid
+	bool left_valid;
+	bool right_valid;
 
 	TrieNode()
 	{
@@ -22,6 +24,8 @@ public:
 			this->children[i] = NULL;
 
 		this->valid = false;
+		this->left_valid = false;
+		this->right_valid = false;
 	};
 
 	virtual ~TrieNode()
@@ -45,7 +49,7 @@ public:
 
 	TrieNode* getChildNode(char character)
 	{
-		if (isValidIndex(getIndex(character)))
+		if (this != NULL && isValidIndex(getIndex(character)))
 			return this->children[getIndex(character)];
 		else
 			return NULL;
@@ -53,7 +57,7 @@ public:
 
 	const TrieNode* getChildNode(char character) const
 	{
-		if (isValidIndex(getIndex(character)))
+		if (this != NULL && isValidIndex(getIndex(character)))
 			return this->children[getIndex(character)];
 		else
 			return NULL;
@@ -61,34 +65,44 @@ public:
 
 	TrieNode* addChildNode(char character)
 	{
-		if (isValidIndex(getIndex(character)))
+		if (this != NULL && isValidIndex(getIndex(character)))
 			return this->children[getIndex(character)] = new TrieNode();
 	}
 
 	void print() const
 	{
+		if (this == NULL)
+				return;
+
 		for (unsigned i = 0; i < 128; i++)
 		{
 			if ( this->children[i] != NULL)
-				if (this->children[i]->valid);
-					std::cout << (char)i <<  std::endl;
+			{
+				if (this->children[i]->valid)
+				{
+					std::cout << (char)i << "->v" <<  std::endl;
+				}
 				this->children[i]->print();
-
+			}
 		}
 	}
 
 	const TrieNode* getRightMostNodeInSubTrie() const
 	{
 		if (this == NULL) return NULL;
-		for (unsigned siblingIterator = 127;
+
+		for (int siblingIterator = 127;
 				 siblingIterator >= 0;
-				--siblingIterator)
+				 --siblingIterator)
 		{
 			const TrieNode *rightSibling = this->getChildNode(siblingIterator);
 			if (rightSibling != NULL)
 			{
-				rightSibling =  rightSibling->getRightMostNodeInSubTrie();
-				return rightSibling;
+				const TrieNode *rightSibling_Tmp = rightSibling->getRightMostNodeInSubTrie();
+				if (rightSibling_Tmp != NULL)
+					return rightSibling_Tmp;
+				else
+					return rightSibling;
 			}
 		}
 		return NULL;
@@ -96,6 +110,8 @@ public:
 
 	const TrieNode* getLeftMostNodeInSubTrie() const
 	{
+		if (this == NULL) return NULL;
+
 		for (unsigned siblingIterator = 0;
 				siblingIterator < 128;
 				++siblingIterator)
@@ -103,8 +119,11 @@ public:
 			const TrieNode *leftSibling = this->getChildNode(siblingIterator);
 			if (leftSibling != NULL)
 			{
-				leftSibling =  leftSibling->getLeftMostNodeInSubTrie();
-				return leftSibling;
+				const TrieNode *leftSibling_Tmp = leftSibling->getLeftMostNodeInSubTrie();
+				if (leftSibling_Tmp != NULL)
+					return leftSibling_Tmp;
+				else
+					return leftSibling;
 			}
 		}
 		return NULL;
@@ -160,31 +179,35 @@ public:
 	{
 		if (found_b)
 		{
-			//std::cout << "f_b"  << std::endl;
 			return;
 		}
 		for (unsigned i =0; i < 128; i++)
 		{
 			if (this->children[i] != NULL)
 			{
-				//std::cout << (char)i  << std::endl;
 				if (not found_a)
 				{
 					if (this->children[i] == range_a)
 					{
+						this->children[i]->valid = valid;
+						this->children[i]->right_valid = valid;
 						found_a = true;
-						//std::cout << "f_a"  << std::endl;
 					}
 				}
-
-				if (found_a && not found_b)
+				else if (found_a && not found_b)
 				{
-					this->children[i]->valid = valid;
 					if (this->children[i] == range_b)
 					{
 						found_b = true;
-						//std::cout << "f_b"  << std::endl;
+						this->children[i]->valid = valid;
+						this->children[i]->left_valid = valid;
 						break;
+					}
+					else
+					{
+						this->children[i]->left_valid = valid;
+						this->children[i]->right_valid = valid;
+						this->children[i]->valid = valid;
 					}
 				}
 
@@ -231,7 +254,6 @@ public:
 		while (*charIterator)
 		{
 			assert (node != NULL);
-			//std::cout << *charIterator << std::endl;
 
 			TrieNode *childNode = node->getChildNode(*charIterator);
 			if (childNode == NULL)
@@ -241,7 +263,6 @@ public:
 			node = childNode;
 			++charIterator;
 		}
-		//std::cout << "---" << std::endl;
 		return node;
 	};
 
@@ -276,7 +297,7 @@ public:
 					{
 						const TrieNode *prevNode = leftSibling->getRightMostNodeInSubTrie();
 						if (prevNode != NULL)
-							leftSibling_valid = prevNode->valid;
+							leftSibling_valid = prevNode->right_valid;
 						break;
 					}
 				}
@@ -291,7 +312,7 @@ public:
 					{
 						const TrieNode *nextNode = rightSibling->getLeftMostNodeInSubTrie();
 						if (nextNode != NULL)
-							rightSibling_valid = nextNode->valid;
+							rightSibling_valid = nextNode->left_valid;
 						break;
 					}
 				}

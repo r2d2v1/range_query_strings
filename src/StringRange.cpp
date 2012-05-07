@@ -11,7 +11,7 @@
 
 using namespace std;
 
-int main()
+void test1()
 {
 	Trie *t = new Trie();
 
@@ -30,9 +30,12 @@ int main()
 	t->addKeywordRange("[ zzz , yyy ]"); // invalid
 
 	t->addKeywordRange("[ ppp , rrr ]");
+
+	//t->print();
+
 	assert( t->isKeywordValid("ppp")  == 1);
 	assert( t->isKeywordValid("rrr")  == 1);
-	//assert( t->isKeywordValid("qqq")  == 1);
+	assert( t->isKeywordValid("qqq")  == 1);
 
 	assert( t->isKeywordValid("Dgh")  == 1);
 	assert( t->isKeywordValid("EEE")  == 1);
@@ -52,6 +55,33 @@ int main()
 	assert( t->isKeywordValid("zzz")  == 0); // due to invalid entry
 
 	delete t;
+}
+
+void test2()
+{
+	Trie *t = new Trie();
+
+	t->addKeywordRange("[ aaa , ccc ]");
+	t->addKeywordRange("[ eee , ggg ]");
+
+	//t->print();
+
+	assert( t->isKeywordValid("bbb")  == 1);
+	assert( t->isKeywordValid("ddd")  == 0);
+
+	t->addKeywordRange("[ aaa , ccc ]");
+	t->addKeywordRange("[ bbb , eee ]");
+
+	assert( t->isKeywordValid("ddd")  == 1);
+	assert( t->isKeywordValid("bbb")  == 1);
+
+	delete t;
+}
+
+int main()
+{
+	//test1();
+	test2();
 
 	std::cout << "all tests passed" << std::endl;
 	return 0;
